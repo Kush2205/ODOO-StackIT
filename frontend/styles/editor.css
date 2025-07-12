@@ -1,0 +1,21 @@
+.editor-content {
+  min-height: 300px;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #fff;
+  font-family: sans-serif;
+}
+
+button.btn {
+  background: #2563eb;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+button.btn:hover {
+  background: #1e40af;
+}
