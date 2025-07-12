@@ -65,7 +65,12 @@ STackIT/
    cd ../backend
    npm install
    ```
-
+4. **.env file structure**
+   ```bash
+    SECRET_KEY =
+    MONGO_URI =
+    DB_NAME =
+   ```
 ### Running the Application
 
 1. **Start the Backend Server**
