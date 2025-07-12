@@ -117,5 +117,5 @@ const ModernTextEditor = forwardRef<ModernTextEditorHandle>((_, ref) => {
   );
 });
 
-ModernTextEditor.displayName = 'RichTextEditor';
+ModernTextEditor.displayName = 'ModernTextEditor';
 export default ModernTextEditor;
