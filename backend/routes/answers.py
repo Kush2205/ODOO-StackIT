@@ -1,6 +1,7 @@
 import re
+import traceback
 from fastapi import APIRouter, HTTPException, Depends
-from models import Answer
+from models import Answer, Vote
 from database import db
 from bson import ObjectId
 from datetime import datetime
@@ -34,8 +35,15 @@ def serialize_answer(ans):
     return ans
 
 
+from pydantic import BaseModel
+
+class Vote(BaseModel):
+    direction: str
+
 @router.post("/answers/{aid}/vote")
-def vote_answer(aid: str, direction: str, user=Depends(get_current_user)):
+def vote_answer(aid: str, vote: Vote, user=Depends(get_current_user)):
+    direction = vote.direction  # ✅ Extract direction from the body
+
     if direction not in ["up", "down"]:
         raise HTTPException(status_code=400, detail="Direction must be 'up' or 'down'")
 
@@ -56,11 +64,9 @@ def vote_answer(aid: str, direction: str, user=Depends(get_current_user)):
 
         vote_change = 0
         if previous_vote == "up" and direction == "down":
-            vote_change = -2  # reversing upvote (+1 → -1)
-
+            vote_change = -2
         elif previous_vote == "down" and direction == "up":
-            vote_change = 2  # reversing downvote (-1 → +1)
-
+            vote_change = 2
         elif previous_vote is None:
             vote_change = 1 if direction == "up" else -1
 
@@ -72,7 +78,8 @@ def vote_answer(aid: str, direction: str, user=Depends(get_current_user)):
         return {"message": f"Vote updated to {direction}"}
     except Exception as e:
         print(f"Error voting on answer {aid}: {e}")
-        raise HTTPException(status_code=400, detail="Invalid answer ID or voting error")
+        traceback.print_exc() 
+        raise HTTPException(status_code=400, detail="Can only upvote/downvote once")
 
 
 @router.post("/answers/{aid}/accept")

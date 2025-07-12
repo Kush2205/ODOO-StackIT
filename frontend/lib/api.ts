@@ -13,12 +13,12 @@ async function apiCall<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const token = localStorage.getItem('stackit-token');
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
+        ...options.headers,
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
       },
       ...options,
     });
@@ -32,9 +32,9 @@ async function apiCall<T>(
     return { success: true, data };
   } catch (error) {
     console.error('API call failed:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 }
@@ -100,8 +100,9 @@ export const answersApi = {
   },
 
   vote: async (answerId: string, direction: 'up' | 'down') => {
-    return apiCall(`/answers/${answerId}/vote?direction=${direction}`, {
+    return apiCall(`/answers/${answerId}/vote`, {
       method: 'POST',
+      body: JSON.stringify({ direction }),
     });
   },
 
