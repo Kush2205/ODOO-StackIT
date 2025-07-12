@@ -11,6 +11,14 @@
 ## About STackIT
 STackIT is a full-stack web application built with modern technologies to provide [brief description of what your application does].
 
+ **.env file structure**
+   ```bash
+    SECRET_KEY =
+    MONGO_URI =
+    DB_NAME =
+   ```
+
+
 ## Tech Stack
 
 ### Frontend
@@ -65,12 +73,7 @@ STackIT/
    cd ../backend
    npm install
    ```
-4. **.env file structure**
-   ```bash
-    SECRET_KEY =
-    MONGO_URI =
-    DB_NAME =
-   ```
+
 ### Running the Application
 
 1. **Start the Backend Server**
