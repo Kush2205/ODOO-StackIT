@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import ModernTextEditor from "@/components/ModernTextEditor";
 import { TagInput } from "@/components/TagInput";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { questionsApi } from "@/lib/api";
 
 export default function AskQuestion() {
   const [title, setTitle] = useState("");
@@ -35,14 +36,28 @@ export default function AskQuestion() {
 
     setIsSubmitting(true);
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    alert("Question posted successfully!");
-    setIsSubmitting(false);
-    
-    setTitle("");
-    setDescription("");
-    setTags([]);
+    try {
+      const result = await questionsApi.create({
+        title: title.trim(),
+        description: description,
+        tags: tags,
+      });
+
+      if (result.success) {
+        alert("Question posted successfully!");
+        setTitle("");
+        setDescription("");
+        setTags([]);
+        // Redirect to home page or the new question
+        window.location.href = '/';
+      } else {
+        alert(result.error || "Failed to post question. Please try again.");
+      }
+    } catch (error) {
+      alert("Failed to post question. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

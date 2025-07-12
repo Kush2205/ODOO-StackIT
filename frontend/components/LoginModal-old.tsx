@@ -1,35 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence }               {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!isLogin && (
+                  <div>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      required={!isLogin}
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    required
+                  />
+                </div>tion";
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'signup';
 }
 
-export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModalProps) {
-  const [isLogin, setIsLogin] = useState(initialMode === 'login');
+export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, register, isLoading } = useAuth();
-
-  // Reset form when modal opens/closes or mode changes
-  useEffect(() => {
-    if (isOpen) {
-      setIsLogin(initialMode === 'login');
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-    }
-  }, [isOpen, initialMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +97,7 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
             className="bg-white rounded-lg shadow-xl w-full max-w-md"
           >
             <div className="p-6">
+              
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
                   {isLogin ? "Sign In" : "Sign Up"}
@@ -93,23 +112,8 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
                 </motion.button>
               </div>
 
+              
               <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required={!isLogin}
-                    />
-                  </div>
-                )}
-                
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     Email
@@ -189,6 +193,7 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
                 </motion.button>
               </form>
 
+              
               <div className="mt-6 text-center">
                 <span className="text-gray-600">
                   {isLogin ? "Don't have an account?" : "Already have an account?"}
