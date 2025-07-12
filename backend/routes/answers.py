@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Depends
 from models import Answer
 from database import db
@@ -93,6 +94,36 @@ def post_answer(qid: str, answer: Answer, user=Depends(get_current_user)):
     }
 
     db.answers.insert_one(answer_data)
+
+    question = db.questions.find_one({"_id": ObjectId(qid)})
+
+    if question and question["user_id"] != user["user_id"]:
+        notification = {
+            "user_id": question["user_id"],
+            "message": f"{user['username']} answered your question: {question['title']}",
+            "link": f"/questions/{qid}",
+            "read": False,
+            "created_at": datetime.utcnow(),
+        }
+    db.notifications.insert_one(notification)
+
+    # Detect mentions in content (e.g., "@alice")
+    mention_pattern = r"@(\w+)"
+    mentioned_usernames = re.findall(mention_pattern, answer_data["content"])
+
+    for uname in mentioned_usernames:
+        mentioned_user = db.users.find_one({"username": uname})
+        if mentioned_user and mentioned_user["user_id"] != user["user_id"]:
+            db.notifications.insert_one(
+                {
+                    "user_id": mentioned_user["user_id"],
+                    "message": f"{user['username']} mentioned you in an answer",
+                    "link": f"/questions/{qid}",
+                    "read": False,
+                    "created_at": datetime.utcnow(),
+                }
+            )
+
     return {"message": "Answer posted"}
 
 
