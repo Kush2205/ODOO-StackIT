@@ -3,15 +3,10 @@
 import { motion } from 'framer-motion';
 import { QuestionCard } from '@/components/QuestionCard';
 import { TagFilter } from '@/components/TagFilter';
-import dynamic from 'next/dynamic';
+
 import React, { useState, useRef } from 'react';
 
-// 🔁 Changed RichTextEditor → ModernTextEditor
-const ModernTextEditor = dynamic(() => import('../components/ModernTextEditor'), { ssr: false });
 
-type ModernTextEditorHandle = {
-  getContent: () => string;
-};
 
 const mockQuestions = [
   {
@@ -55,12 +50,13 @@ const mockQuestions = [
 const allTags = ['React', 'JavaScript', 'Node.js', 'JWT', 'Authentication', 'Security', 'Database', 'PostgreSQL', 'Schema Design', 'Hooks'];
 
 export default function Home() {
-  const editorRef = useRef<ModernTextEditorHandle>(null);
+  
   const [editorContent, setEditorContent] = useState('');
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState(mockQuestions);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'unanswered'>('newest');
+  const editorRef = useRef<any>(null); 
 
   const handlePostQuestion = () => {
     if (!title.trim()) return alert('Please enter a title');
@@ -96,28 +92,7 @@ export default function Home() {
         <p className="text-gray-600">Discover and share knowledge with the community</p>
       </motion.div>
 
-      {/* ➕ Create Question Box */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Ask a Question</h2>
-        <input
-          type="text"
-          placeholder="Enter your question title"
-          className="w-full border rounded px-4 py-2 mb-4"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <div className="mb-4">
-          {/* 🔁 Using ModernTextEditor instead of RichTextEditor */}
-          <ModernTextEditor ref={editorRef} />
-        </div>
-        <button
-          onClick={handlePostQuestion}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Post Question
-        </button>
-      </div>
-
+     
       {/* Main Layout */}
       <div className="flex gap-8">
         {/* Sidebar - Tag Filter */}
