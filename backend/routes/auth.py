@@ -16,7 +16,8 @@ def register(user: UserRegister):
         "username": user.username,
         "email": user.email,
         "password": hashed_pw,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "is_admin": user.is_admin
     })
     return {"message": "User registered successfully"}
 
@@ -28,3 +29,4 @@ def login(user: UserLogin):
     
     token = create_access_token({"user_id": str(db_user["_id"]), "username": db_user["username"]})
     return {"access_token": token, "token_type": "bearer"}
+

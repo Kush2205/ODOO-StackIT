@@ -11,6 +11,7 @@ class UserRegister(BaseModel):
     username: str
     email: EmailStr
     password: str
+    is_admin: bool
 
 class UserLogin(BaseModel):
     email: EmailStr
