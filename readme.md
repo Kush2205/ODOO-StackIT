@@ -6,6 +6,7 @@
 ## Team Information
 - **Team Name:** NEVERMIND
 - **Team Email:** 23mc3009@rgipt.ac.in
+- **Demo Video Link:** https://youtu.be/ejKBQKS_9f0?si=wATcsIbAioohyDqg
 
 ## About STackIT
 STackIT is a full-stack web application built with modern technologies to provide [brief description of what your application does].
