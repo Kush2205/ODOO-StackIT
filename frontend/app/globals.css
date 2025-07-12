@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/* Custom Quill toolbar styles */
+.quill-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  background-color: #f3f4f6;
+}
+
+/* Style the Quill editor */
+.ql-snow .ql-toolbar {
+  border-bottom: 1px solid #d1d5db;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.ql-snow .ql-container {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Ensure proper editor height */
+.quill-editor-container .ql-editor {
+  min-height: 250px;
+}
+
 [contenteditable]:empty::before {
   content: attr(data-placeholder);
   color: #9ca3af;

@@ -1,50 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BellIcon, UserIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { BellIcon as BellSolidIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginModal } from "@/components/LoginModal";
+import { notificationsApi } from "@/lib/api";
 
 interface Notification {
-  id: string;
+  _id: string;
+  user_id: string;
   message: string;
-  time: string;
+  link: string;
   read: boolean;
+  created_at: string;
 }
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      message: "John Doe answered your question about React hooks",
-      time: "2 minutes ago",
-      read: false,
-    },
-    {
-      id: "2",
-      message: "@jane mentioned you in a comment",
-      time: "1 hour ago",
-      read: false,
-    },
-    {
-      id: "3",
-      message: "Your answer was accepted!",
-      time: "3 hours ago",
-      read: true,
-    },
-  ]);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+      fetchUnreadCount();
+      // Poll for notifications every 30 seconds
+      const interval = setInterval(() => {
+        fetchUnreadCount();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+  const fetchNotifications = async () => {
+    try {
+      const result = await notificationsApi.getAll();
+      if (result.success && result.data) {
+        setNotifications(result.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const result = await notificationsApi.getUnreadCount();
+      if (result.success && result.data) {
+        setUnreadCount(result.data.unread_count);
+      }
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const result = await notificationsApi.markAllRead();
+      if (result.success) {
+        setUnreadCount(0);
+        setNotifications(prev => 
+          prev.map(n => ({ ...n, read: true }))
+        );
+      }
+    } catch (error) {
+      console.error('Failed to mark notifications as read:', error);
+    }
   };
 
   return (
@@ -142,9 +168,14 @@ export function Navbar() {
                       <div className="max-h-64 overflow-y-auto">
                         {notifications.map((notification) => (
                           <motion.div
-                            key={notification.id}
+                            key={notification._id}
                             whileHover={{ backgroundColor: "#f9fafb" }}
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={() => {
+                              // Navigate to notification link
+                              if (notification.link) {
+                                window.location.href = notification.link;
+                              }
+                            }}
                             className={`px-4 py-3 cursor-pointer border-l-4 ${
                               notification.read 
                                 ? "border-transparent" 
@@ -152,9 +183,26 @@ export function Navbar() {
                             }`}
                           >
                             <p className="text-sm text-gray-900">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(notification.created_at).toLocaleString()}
+                            </p>
                           </motion.div>
                         ))}
+                        {notifications.length === 0 && (
+                          <div className="px-4 py-3 text-center text-gray-500">
+                            No notifications yet
+                          </div>
+                        )}
+                        {unreadCount > 0 && (
+                          <div className="px-4 py-2 border-t border-gray-100">
+                            <button
+                              onClick={markAllAsRead}
+                              className="text-sm text-blue-600 hover:text-blue-700"
+                            >
+                              Mark all as read
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -194,7 +242,10 @@ export function Navbar() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowLoginModal(true)}
+                  onClick={() => {
+                    setLoginMode('login');
+                    setShowLoginModal(true);
+                  }}
                   className="text-gray-600 hover:text-gray-900 px-4 py-2 transition-colors duration-200"
                 >
                   Log In
@@ -202,7 +253,10 @@ export function Navbar() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowLoginModal(true)}
+                  onClick={() => {
+                    setLoginMode('signup');
+                    setShowLoginModal(true);
+                  }}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
                 >
                   Sign Up
@@ -213,7 +267,11 @@ export function Navbar() {
         </div>
       </div>
       
-      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        initialMode={loginMode}
+      />
     </nav>
   );
 }

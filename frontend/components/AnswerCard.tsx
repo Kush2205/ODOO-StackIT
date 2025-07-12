@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { 
   ArrowUpIcon, 
   ArrowDownIcon,
   CheckCircleIcon,
   ShareIcon 
 } from "@heroicons/react/24/outline";
+import { answersApi } from "@/lib/api";
 
 interface Answer {
   id: string;
@@ -17,6 +19,7 @@ interface Answer {
   upvotes: number;
   downvotes: number;
   isAccepted: boolean;
+  votes: number;
 }
 
 interface AnswerCardProps {
@@ -24,6 +27,28 @@ interface AnswerCardProps {
 }
 
 export function AnswerCard({ answer }: AnswerCardProps) {
+  const [votes, setVotes] = useState(answer.votes || 0);
+  const [isVoting, setIsVoting] = useState(false);
+
+  const handleVote = async (direction: 'up' | 'down') => {
+    if (isVoting) return;
+    
+    setIsVoting(true);
+    try {
+      const result = await answersApi.vote(answer.id, direction);
+      if (result.success) {
+        // Update vote count optimistically
+        setVotes(prev => direction === 'up' ? prev + 1 : prev - 1);
+      } else {
+        alert(result.error || 'Failed to vote');
+      }
+    } catch (error) {
+      alert('Failed to vote');
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ y: -1 }}
@@ -34,22 +59,26 @@ export function AnswerCard({ answer }: AnswerCardProps) {
       }`}
     >
       <div className="flex gap-6">
-        
+        {/* Vote Section */}
         <div className="flex flex-col items-center space-y-2 shrink-0">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200"
+            onClick={() => handleVote('up')}
+            disabled={isVoting}
           >
             <ArrowUpIcon className="w-5 h-5" />
           </motion.button>
           <span className="font-semibold text-gray-900">
-            {answer.upvotes - answer.downvotes}
+            {votes}
           </span>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
+            onClick={() => handleVote('down')}
+            disabled={isVoting}
           >
             <ArrowDownIcon className="w-5 h-5" />
           </motion.button>
@@ -60,12 +89,12 @@ export function AnswerCard({ answer }: AnswerCardProps) {
               animate={{ scale: 1 }}
               className="mt-2"
             >
-              <CheckCircleIcon className="w-8 h-8 text-green-500" />
+              <CheckCircleIcon className="w-8 h-8 text-green-600" />
             </motion.div>
           )}
         </div>
 
-        
+        {/* Content Section */}
         <div className="flex-1">
           {answer.isAccepted && (
             <motion.div
@@ -83,7 +112,7 @@ export function AnswerCard({ answer }: AnswerCardProps) {
             dangerouslySetInnerHTML={{ __html: answer.content }}
           />
 
-          
+          {/* Footer */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <motion.button

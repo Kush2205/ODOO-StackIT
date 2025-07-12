@@ -25,27 +25,15 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [questionId, setQuestionId] = useState<string>('');
 
   useEffect(() => {
-    const initializeParams = async () => {
-      const resolvedParams = await params;
-      setQuestionId(resolvedParams.id);
-    };
-    initializeParams();
-  }, [params]);
-
-  useEffect(() => {
-    if (questionId) {
-      fetchQuestionData();
-      fetchAnswers();
-    }
-  }, [questionId]);
+    fetchQuestionData();
+    fetchAnswers();
+  }, [params.id]);
 
   const fetchQuestionData = async () => {
-    if (!questionId) return;
     try {
-      const result = await questionsApi.getById(questionId);
+      const result = await questionsApi.getById(params.id);
       if (result.success && result.data) {
         setQuestionData(result.data);
       } else {
@@ -59,9 +47,8 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
   };
 
   const fetchAnswers = async () => {
-    if (!questionId) return;
     try {
-      const result = await answersApi.getByQuestionId(questionId);
+      const result = await answersApi.getByQuestionId(params.id);
       if (result.success && result.data) {
         setAnswers(result.data);
       }
@@ -91,7 +78,7 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
     setIsSubmitting(true);
     
     try {
-      const result = await answersApi.create(questionId, { content: newAnswer });
+      const result = await answersApi.create(params.id, { content: newAnswer });
       
       if (result.success) {
         alert("Answer posted successfully!");
@@ -213,11 +200,11 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {questionData.author_avatar || 'U'}
+                      U
                     </span>
                   </div>
                   <div className="text-sm">
-                    <p className="text-gray-900 font-medium">{questionData.author || 'Unknown User'}</p>
+                    <p className="text-gray-900 font-medium">User</p>
                   </div>
                 </div>
               </div>
@@ -250,12 +237,11 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
               <AnswerCard answer={{
                 id: answer._id,
                 content: answer.content,
-                author: answer.author || 'Unknown User',
-                authorAvatar: answer.author_avatar || 'U',
+                author: 'User',
+                authorAvatar: 'U',
                 createdAt: new Date(answer.created_at).toLocaleDateString(),
-                upvotes: 0, // for backwards compatibility
-                downvotes: 0, // for backwards compatibility  
-                votes: answer.votes || 0,
+                upvotes: answer.votes || 0,
+                downvotes: 0,
                 isAccepted: answer.is_accepted || false
               }} />
             </motion.div>

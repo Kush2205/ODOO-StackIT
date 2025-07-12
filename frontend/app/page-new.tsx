@@ -15,11 +15,6 @@ interface Question {
   created_at: string;
   updated_at: string;
   accepted_answer_id: string | null;
-  author: string;
-  author_avatar: string;
-  answer_count: number;
-  tags: string[];
-  votes: number;
 }
 
 const allTags = ['React', 'JavaScript', 'Node.js', 'JWT', 'Authentication', 'Security', 'Database', 'PostgreSQL', 'Schema Design', 'Hooks'];
@@ -57,12 +52,12 @@ export default function Home() {
     id: q._id,
     title: q.title,
     description: q.description,
-    author: q.author || 'Unknown User',
-    authorAvatar: q.author_avatar || 'U',
+    author: 'User', // We'd need to fetch user data separately
+    authorAvatar: 'U',
     createdAt: new Date(q.created_at).toLocaleDateString(),
-    tags: q.tags || [],
-    upvotes: q.votes || 0,
-    answers: q.answer_count || 0,
+    tags: [], // Backend doesn't have tags yet, you might want to add this
+    upvotes: 0, // Backend doesn't track votes on questions
+    answers: 0, // Would need to count answers
     hasAcceptedAnswer: !!q.accepted_answer_id,
   }));
 

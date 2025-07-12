@@ -3,7 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ModernTextEditor from "@/components/ModernTextEditor";
-import { AnswerCard } from "@/components/AnswerCard";
+import { Ans            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(questionData.tags || []).map((tag: string) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>rom "@/components/AnswerCard";
 import { questionsApi, answersApi } from "@/lib/api";
 import { 
   ArrowUpIcon, 
@@ -25,27 +35,15 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [questionId, setQuestionId] = useState<string>('');
 
   useEffect(() => {
-    const initializeParams = async () => {
-      const resolvedParams = await params;
-      setQuestionId(resolvedParams.id);
-    };
-    initializeParams();
-  }, [params]);
-
-  useEffect(() => {
-    if (questionId) {
-      fetchQuestionData();
-      fetchAnswers();
-    }
-  }, [questionId]);
+    fetchQuestionData();
+    fetchAnswers();
+  }, [params.id]);
 
   const fetchQuestionData = async () => {
-    if (!questionId) return;
     try {
-      const result = await questionsApi.getById(questionId);
+      const result = await questionsApi.getById(params.id);
       if (result.success && result.data) {
         setQuestionData(result.data);
       } else {
@@ -59,9 +57,8 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
   };
 
   const fetchAnswers = async () => {
-    if (!questionId) return;
     try {
-      const result = await answersApi.getByQuestionId(questionId);
+      const result = await answersApi.getByQuestionId(params.id);
       if (result.success && result.data) {
         setAnswers(result.data);
       }
@@ -72,8 +69,10 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
 
   const stripHtml = (html: string) => {
     if (typeof window === 'undefined') {
+      // Server-side: basic HTML tag removal
       return html.replace(/<[^>]*>/g, '').trim();
     }
+    // Client-side: proper DOM parsing
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
@@ -91,12 +90,12 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
     setIsSubmitting(true);
     
     try {
-      const result = await answersApi.create(questionId, { content: newAnswer });
+      const result = await answersApi.create(params.id, { content: newAnswer });
       
       if (result.success) {
         alert("Answer posted successfully!");
         setNewAnswer("");
-        fetchAnswers();
+        fetchAnswers(); // Refresh answers
       } else {
         alert(result.error || "Failed to post answer. Please try again.");
       }
@@ -136,14 +135,15 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* Question */}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-lg border border-gray-200 p-8"
       >
+        
         <div className="flex gap-6">
-          {/* Voting */}
+          
           <div className="flex flex-col items-center space-y-3 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -153,7 +153,7 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
               <ArrowUpIcon className="w-6 h-6" />
             </motion.button>
             <span className="text-xl font-bold text-gray-900">
-              {questionData.upvotes || 0}
+              {questionData.upvotes - questionData.downvotes}
             </span>
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -171,7 +171,7 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
             </motion.button>
           </div>
 
-          {/* Content */}
+          
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               {questionData.title}
@@ -182,9 +182,9 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
               dangerouslySetInnerHTML={{ __html: questionData.description }}
             />
 
-            {/* Tags */}
+            
             <div className="flex flex-wrap gap-2 mb-6">
-              {(questionData.tags || []).map((tag: string) => (
+              {questionData.tags.map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
@@ -194,10 +194,12 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
               ))}
             </div>
 
-            {/* Meta */}
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>Asked {new Date(questionData.created_at).toLocaleDateString()}</span>
+                <span>{questionData.views} views</span>
+                <span>•</span>
+                <span>Asked {questionData.createdAt}</span>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -213,11 +215,11 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {questionData.author_avatar || 'U'}
+                      {questionData.authorAvatar}
                     </span>
                   </div>
                   <div className="text-sm">
-                    <p className="text-gray-900 font-medium">{questionData.author || 'Unknown User'}</p>
+                    <p className="text-gray-900 font-medium">{questionData.author}</p>
                   </div>
                 </div>
               </div>
@@ -226,85 +228,77 @@ export default function QuestionDetail({ params }: QuestionDetailProps) {
         </div>
       </motion.div>
 
-      {/* Answers */}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
+        className="flex items-center justify-between"
+      >
+        <h2 className="text-xl font-bold text-gray-900">
+          {mockAnswers.length} Answer{mockAnswers.length !== 1 ? 's' : ''}
+        </h2>
+        <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <CheckCircleIcon className="w-4 h-4 text-green-500" />
+          <span>Accepted answer available</span>
+        </div>
+      </motion.div>
+
+      
+      <div className="space-y-6">
+        {mockAnswers.map((answer, index) => (
+          <motion.div
+            key={answer.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * (index + 2) }}
+          >
+            <AnswerCard answer={answer} />
+          </motion.div>
+        ))}
+      </div>
+
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
         className="bg-white rounded-lg border border-gray-200 p-8"
       >
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <ChatBubbleLeftIcon className="w-5 h-5 mr-2" />
-          {answers.length} Answer{answers.length !== 1 ? 's' : ''}
-        </h2>
-
-        {/* Answer List */}
-        <div className="space-y-6 mb-8">
-          {answers.map((answer: any, index: number) => (
-            <motion.div
-              key={answer._id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Your Answer
+        </h3>
+        
+        <form onSubmit={handleSubmitAnswer} className="space-y-4">
+          <ModernTextEditor
+            value={newAnswer}
+            onChange={setNewAnswer}
+            placeholder="Share your knowledge and help the community..."
+          />
+          
+          <div className="flex justify-end">
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isSubmitting || isAnswerEmpty}
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                isSubmitting || isAnswerEmpty
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
             >
-              <AnswerCard answer={{
-                id: answer._id,
-                content: answer.content,
-                author: answer.author || 'Unknown User',
-                authorAvatar: answer.author_avatar || 'U',
-                createdAt: new Date(answer.created_at).toLocaleDateString(),
-                upvotes: 0, // for backwards compatibility
-                downvotes: 0, // for backwards compatibility  
-                votes: answer.votes || 0,
-                isAccepted: answer.is_accepted || false
-              }} />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Add Answer Form */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Answer</h3>
-          <form onSubmit={handleSubmitAnswer} className="space-y-4">
-            <ModernTextEditor
-              value={newAnswer}
-              onChange={setNewAnswer}
-              placeholder="Write your answer here. Be thorough and explain your reasoning..."
-            />
-            
-            <div className="flex justify-end space-x-4">
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setNewAnswer("")}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                Clear
-              </motion.button>
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={isSubmitting || isAnswerEmpty}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  isSubmitting || isAnswerEmpty
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Posting...</span>
-                  </div>
-                ) : (
-                  "Post Answer"
-                )}
-              </motion.button>
-            </div>
-          </form>
-        </div>
+              {isSubmitting ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Posting...</span>
+                </div>
+              ) : (
+                "Post Your Answer"
+              )}
+            </motion.button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );

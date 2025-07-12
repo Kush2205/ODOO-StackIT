@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-
+import ModernTextEditor from "@/components/ModernTextEditor";
 import { TagInput } from "@/components/TagInput";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { questionsApi } from "@/lib/api";
 
 export default function AskQuestion() {
   const [title, setTitle] = useState("");
@@ -12,23 +13,51 @@ export default function AskQuestion() {
   const [tags, setTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const stripHtml = (html: string) => {
+    if (typeof window === 'undefined') {
+      // Server-side: basic HTML tag removal
+      return html.replace(/<[^>]*>/g, '').trim();
+    }
+    // Client-side: proper DOM parsing
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || tags.length === 0) {
+    
+    const descriptionText = stripHtml(description).trim();
+    
+    if (!title.trim() || !descriptionText || tags.length === 0) {
       alert("Please fill in all fields and add at least one tag.");
       return;
     }
 
     setIsSubmitting(true);
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    alert("Question posted successfully!");
-    setIsSubmitting(false);
-    
-    setTitle("");
-    setDescription("");
-    setTags([]);
+    try {
+      const result = await questionsApi.create({
+        title: title.trim(),
+        description: description,
+        tags: tags,
+      });
+
+      if (result.success) {
+        alert("Question posted successfully!");
+        setTitle("");
+        setDescription("");
+        setTags([]);
+        // Redirect to home page or the new question
+        window.location.href = '/';
+      } else {
+        alert(result.error || "Failed to post question. Please try again.");
+      }
+    } catch (error) {
+      alert("Failed to post question. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,11 +104,10 @@ export default function AskQuestion() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description <span className="text-red-500">*</span>
           </label>
-          <textarea
+          <ModernTextEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder="Describe your problem in detail. Include any error messages, code snippets, or relevant context that might help others understand your question."
-            className="w-full min-h-[300px] px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y"
           />
         </div>
 

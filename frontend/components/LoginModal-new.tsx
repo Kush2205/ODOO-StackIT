@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,28 +8,16 @@ import { useAuth } from "@/contexts/AuthContext";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'signup';
 }
 
-export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModalProps) {
-  const [isLogin, setIsLogin] = useState(initialMode === 'login');
+export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, register, isLoading } = useAuth();
-
-  // Reset form when modal opens/closes or mode changes
-  useEffect(() => {
-    if (isOpen) {
-      setIsLogin(initialMode === 'login');
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-    }
-  }, [isOpen, initialMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
