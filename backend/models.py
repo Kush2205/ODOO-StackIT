@@ -1,8 +1,10 @@
 from pydantic import BaseModel, EmailStr
+from typing import List, Optional
 
 class Question(BaseModel):
     title: str
     description: str
+    tags: List[str] = []
 
 class Answer(BaseModel):
     content: str
