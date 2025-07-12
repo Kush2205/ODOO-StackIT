@@ -19,11 +19,13 @@ const ModernTextEditor = forwardRef<ModernTextEditorHandle>((_, ref) => {
         theme: 'snow',
         modules: {
           toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'],
-            ['clean'],
+            [{ header: [1, 2, 3, 4, 5, 6, false] }, { font: [] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ color: [] }, { background: [] }],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              [{ 'script': 'sub'}, { 'script': 'super' }],
+              ['link', 'image'],
+              ['clean'],
           ],
         },
         placeholder: 'Write something...',
