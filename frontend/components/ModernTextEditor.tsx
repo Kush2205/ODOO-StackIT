@@ -8,33 +8,25 @@ import React, {
   useState,
 } from 'react';
 import Quill from 'quill';
-import 'quill/dist/quill.snow.css'; // Quill styles
-import EmojiPicker from 'emoji-picker-react'; // ✅ new emoji picker
+import 'quill/dist/quill.snow.css';
+import EmojiPicker from 'emoji-picker-react';
 
-// Define the ref type for the ModernTextEditor component
 export type ModernTextEditorHandle = {
   getContent: () => string;
 };
 
 const ModernTextEditor = forwardRef<ModernTextEditorHandle>((_, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null); // 🔧 Toolbar container
   const quillRef = useRef<Quill | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && toolbarRef.current && !quillRef.current) {
       quillRef.current = new Quill(editorRef.current, {
         theme: 'snow',
         modules: {
-          toolbar: [
-            [{ header: [1, 2, 3, 4, 5, 6, false] }, { font: [] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ color: [] }, { background: [] }],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            [{ script: 'sub' }, { script: 'super' }],
-            ['link', 'image'],
-            ['clean'],
-          ],
+          toolbar: toolbarRef.current, // 🔧 use custom toolbar container
         },
         placeholder: 'Write something...',
       });
@@ -45,13 +37,9 @@ const ModernTextEditor = forwardRef<ModernTextEditorHandle>((_, ref) => {
     };
   }, []);
 
-  // Expose the getContent function to the parent component
   useImperativeHandle(ref, () => ({
     getContent: () => {
-      if (quillRef.current) {
-        return quillRef.current.root.innerHTML;
-      }
-      return '';
+      return quillRef.current?.root.innerHTML || '';
     },
   }));
 
@@ -65,6 +53,46 @@ const ModernTextEditor = forwardRef<ModernTextEditorHandle>((_, ref) => {
 
   return (
     <div>
+      <div
+        ref={toolbarRef}
+        style={{ marginBottom: '8px' }}
+        id="custom-toolbar"
+      >
+        <span className="ql-formats">
+          <select className="ql-header" defaultValue={''}>
+            <option value="1" />
+            <option value="2" />
+            <option value="3" />
+            <option value="4" />
+            <option value="5" />
+            <option value="6" />
+            <option value="" />
+          </select>
+          <select className="ql-font" />
+        </span>
+        <span className="ql-formats">
+          <button className="ql-bold" />
+          <button className="ql-italic" />
+          <button className="ql-underline" />
+          <button className="ql-strike" />
+        </span>
+        <span className="ql-formats">
+          <select className="ql-color" />
+          <select className="ql-background" />
+        </span>
+        <span className="ql-formats">
+          <button className="ql-list" value="ordered" />
+          <button className="ql-list" value="bullet" />
+          <button className="ql-script" value="sub" />
+          <button className="ql-script" value="super" />
+        </span>
+        <span className="ql-formats">
+          <button className="ql-link" />
+          <button className="ql-image" />
+          <button className="ql-clean" />
+        </span>
+      </div>
+
       <button
         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
         style={{
