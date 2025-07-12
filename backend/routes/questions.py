@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from deps import get_current_user
 from models import Question
 from database import db
 from bson import ObjectId
@@ -11,10 +12,11 @@ def serialize_question(q):
     return q
 
 @router.post("/questions")
-def ask_question(question: Question):
+def ask_question(question: Question, user = Depends(get_current_user)):
     question_data = question.dict()
+    question_data["user_id"] = user["user_id"]
     question_data["created_at"] = datetime.utcnow()
-    question_data["votes"] = 0
+    question_data["updated_at"] = datetime.utcnow()
     question_data["accepted_answer_id"] = None
     result = db.questions.insert_one(question_data)
     return {"message": "Question posted", "id": str(result.inserted_id)}
