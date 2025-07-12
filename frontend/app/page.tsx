@@ -1,4 +1,4 @@
-import TextEditor from "../components/TextEditor";
+import TextEditor from "../components/RichTextEditor";
 
 export default function Home() {
   return (
