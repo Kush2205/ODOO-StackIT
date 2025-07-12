@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-
+import ModernTextEditor from "@/components/ModernTextEditor";
 import { AnswerCard } from "@/components/AnswerCard";
 import { 
   ArrowUpIcon, 
@@ -80,9 +80,25 @@ export default function QuestionDetail() {
   const [newAnswer, setNewAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const stripHtml = (html: string) => {
+    if (typeof window === 'undefined') {
+      // Server-side: basic HTML tag removal
+      return html.replace(/<[^>]*>/g, '').trim();
+    }
+    // Client-side: proper DOM parsing
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
+  const isAnswerEmpty = !stripHtml(newAnswer).trim();
+
   const handleSubmitAnswer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAnswer.trim()) return;
+    
+    const answerText = stripHtml(newAnswer).trim();
+    
+    if (!answerText) return;
 
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -229,11 +245,10 @@ export default function QuestionDetail() {
         </h3>
         
         <form onSubmit={handleSubmitAnswer} className="space-y-4">
-          <textarea
+          <ModernTextEditor
             value={newAnswer}
-            onChange={(e) => setNewAnswer(e.target.value)}
+            onChange={setNewAnswer}
             placeholder="Share your knowledge and help the community..."
-            className="w-full min-h-[200px] px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y"
           />
           
           <div className="flex justify-end">
@@ -241,9 +256,9 @@ export default function QuestionDetail() {
               type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              disabled={isSubmitting || !newAnswer.trim()}
+              disabled={isSubmitting || isAnswerEmpty}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                isSubmitting || !newAnswer.trim()
+                isSubmitting || isAnswerEmpty
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
