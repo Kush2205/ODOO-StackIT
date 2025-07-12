@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import { motion } from "framer-motion";
@@ -46,9 +45,6 @@ const mockQuestions = [
 ];
 
 const allTags = ["React", "JavaScript", "Node.js", "JWT", "Authentication", "Security", "Database", "PostgreSQL", "Schema Design", "Hooks"];
-=======
-import TextEditor from "../components/RichTextEditor";
->>>>>>> 49b16d19f4d0f783fd1411a75bc55407ceb12af0
 
 export default function Home() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
