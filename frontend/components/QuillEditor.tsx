@@ -9,6 +9,7 @@ import React, {
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import EmojiPicker from 'emoji-picker-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface QuillEditorProps {
   value?: string;
@@ -27,6 +28,7 @@ const QuillEditor = ({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (editorRef.current && toolbarRef.current && !quillRef.current) {
@@ -83,7 +85,11 @@ const QuillEditor = ({
 
   return (
     <div className="relative">
-      <div ref={toolbarRef} className="quill-toolbar border-gray-300 border rounded-t-lg">
+      <div ref={toolbarRef} className={`quill-toolbar border rounded-t-lg ${
+        theme === 'dark' 
+          ? 'border-gray-600 bg-gray-800 text-gray-200' 
+          : 'border-gray-300 bg-white text-gray-900'
+      }`}>
         <span className="ql-formats">
           <select className="ql-header" defaultValue="">
             <option value="1"></option>
@@ -120,18 +126,33 @@ const QuillEditor = ({
       <button
         type="button"
         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-        className="my-2 px-3 py-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md text-sm transition-colors duration-200"
+        className={`my-2 px-3 py-1 border rounded-md text-sm transition-colors duration-200 ${
+          theme === 'dark'
+            ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200'
+            : 'bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900'
+        }`}
       >
         😊 Add Emoji
       </button>
 
       {showEmojiPicker && (
-        <div className="absolute top-24 left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg">
-          <EmojiPicker onEmojiClick={insertEmoji} />
+        <div className={`absolute top-24 left-0 z-50 border rounded-lg shadow-lg ${
+          theme === 'dark'
+            ? 'bg-gray-800 border-gray-600'
+            : 'bg-white border-gray-300'
+        }`}>
+          <EmojiPicker 
+            onEmojiClick={insertEmoji}
+            theme={theme === 'dark' ? 'dark' as any : 'light' as any}
+          />
         </div>
       )}
 
-      <div ref={editorRef} className="min-h-[300px] bg-white border border-gray-300 rounded-b-lg border-t-0" />
+      <div ref={editorRef} className={`min-h-[300px] border rounded-b-lg border-t-0 ${
+        theme === 'dark'
+          ? 'bg-gray-800 border-gray-600 text-gray-200'
+          : 'bg-white border-gray-300 text-gray-900'
+      }`} />
     </div>
   );
 };
