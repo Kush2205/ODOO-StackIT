@@ -130,6 +130,37 @@ export const notificationsApi = {
   },
 };
 
+// AI API
+export const aiApi = {
+  suggestTags: async (title: string, description: string) => {
+    return apiCall<{ suggested_tags: string[] }>(
+      '/ai/suggest-tags',
+      {
+        method: 'POST',
+        body: JSON.stringify({ title, description }),
+      }
+    );
+  },
+  summarizeAnswer: async (content: string) => {
+    return apiCall<{ summary: string }>(
+      '/ai/summarize-answer',
+      {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      }
+    );
+  },
+  nextWord: async (text: string) => {
+    return apiCall<{ predictions: string[] }>(
+      '/ai/next-word',
+      {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+      }
+    );
+  },
+};
+
 // Helper functions
 export const setAuthToken = (token: string) => {
   localStorage.setItem('stackit-token', token);

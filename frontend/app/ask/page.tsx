@@ -5,13 +5,15 @@ import { motion } from "framer-motion";
 import ModernTextEditor from "@/components/ModernTextEditor";
 import { TagInput } from "@/components/TagInput";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { questionsApi } from "@/lib/api";
+import { questionsApi, aiApi } from "@/lib/api";
 
 export default function AskQuestion() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const stripHtml = (html: string) => {
     if (typeof window === 'undefined') {
@@ -59,6 +61,19 @@ export default function AskQuestion() {
       setIsSubmitting(false);
     }
   };
+
+  // Suggest tags when title or description changes
+  async function handleSuggestTags() {
+    if (!title.trim() && !description.trim()) return;
+    setIsSuggesting(true);
+    const result = await aiApi.suggestTags(title, description);
+    if (result.success && result.data) {
+      setSuggestedTags(result.data.suggested_tags);
+    } else {
+      setSuggestedTags([]);
+    }
+    setIsSuggesting(false);
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -143,6 +158,35 @@ export default function AskQuestion() {
               ))}
             </div>
           </div>
+        </div>
+
+        
+        <div>
+          <button
+            type="button"
+            onClick={handleSuggestTags}
+            className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
+            disabled={isSuggesting}
+          >
+            {isSuggesting ? "Suggesting..." : "Suggest Tags"}
+          </button>
+          {suggestedTags.length > 0 && (
+            <div className="mt-2 text-sm text-gray-700">
+              Suggested Tags: {suggestedTags.join(", ")}
+              <div className="flex flex-wrap gap-2 mt-1">
+                {suggestedTags.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs hover:bg-blue-300"
+                    onClick={() => setTags(prev => prev.includes(tag) ? prev : [...prev, tag])}
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         

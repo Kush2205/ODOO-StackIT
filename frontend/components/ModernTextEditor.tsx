@@ -7,6 +7,7 @@ import React, {
   useEffect,
 } from 'react';
 import dynamic from 'next/dynamic';
+import { aiApi } from '@/lib/api';
 
 export type ModernTextEditorHandle = {
   getContent: () => string;
@@ -44,10 +45,23 @@ const ModernTextEditor = forwardRef<
   ModernTextEditorProps
 >(({ value = '', onChange, placeholder = 'Write something...' }, ref) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [predictions, setPredictions] = useState<string[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  async function handleNextWord(text: string) {
+    setIsPredicting(true);
+    const result = await aiApi.nextWord(text);
+    if (result.success && result.data) {
+      setPredictions(result.data.predictions);
+    } else {
+      setPredictions([]);
+    }
+    setIsPredicting(false);
+  }
 
   if (!isMounted) {
     return (
@@ -68,12 +82,27 @@ const ModernTextEditor = forwardRef<
   }
 
   return (
-    <QuillEditor
-      forwardedRef={ref}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-    />
+    <div>
+      <QuillEditor
+        forwardedRef={ref}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      <button
+        type="button"
+        className="mt-2 px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
+        onClick={() => handleNextWord(value || '')}
+        disabled={isPredicting}
+      >
+        {isPredicting ? 'Predicting...' : 'Next Word Suggestions'}
+      </button>
+      {predictions.length > 0 && (
+        <div className="mt-2 text-xs text-gray-600">
+          Suggestions: {predictions.join(', ')}
+        </div>
+      )}
+    </div>
   );
 });
 

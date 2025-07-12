@@ -8,7 +8,7 @@ import {
   CheckCircleIcon,
   ShareIcon 
 } from "@heroicons/react/24/outline";
-import { answersApi } from "@/lib/api";
+import { answersApi, aiApi } from "@/lib/api";
 
 interface Answer {
   id: string;
@@ -29,6 +29,8 @@ interface AnswerCardProps {
 export function AnswerCard({ answer }: AnswerCardProps) {
   const [votes, setVotes] = useState(answer.votes || 0);
   const [isVoting, setIsVoting] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleVote = async (direction: 'up' | 'down') => {
     if (isVoting) return;
@@ -48,6 +50,17 @@ export function AnswerCard({ answer }: AnswerCardProps) {
       setIsVoting(false);
     }
   };
+
+  async function handleSummarize() {
+    setIsSummarizing(true);
+    const result = await aiApi.summarizeAnswer(answer.content);
+    if (result.success && result.data) {
+      setSummary(result.data.summary);
+    } else {
+      setSummary("Failed to summarize.");
+    }
+    setIsSummarizing(false);
+  }
 
   return (
     <motion.div
@@ -111,6 +124,20 @@ export function AnswerCard({ answer }: AnswerCardProps) {
             className="prose max-w-none mb-6"
             dangerouslySetInnerHTML={{ __html: answer.content }}
           />
+
+          <button
+            type="button"
+            onClick={handleSummarize}
+            className="mb-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
+            disabled={isSummarizing}
+          >
+            {isSummarizing ? "Summarizing..." : "Summarize Answer"}
+          </button>
+          {summary && (
+            <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-gray-800 text-sm">
+              <strong>Summary:</strong> {summary}
+            </div>
+          )}
 
           {/* Footer */}
           <div className="flex items-center justify-between">

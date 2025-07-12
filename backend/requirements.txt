@@ -5,3 +5,9 @@ python-jose[cryptography]
 bcrypt
 python-dotenv
 email-validator
+# AI/ML dependencies
+transformers
+torch
+scikit-learn
+sentence-transformers
+requests
